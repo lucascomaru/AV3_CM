@@ -16,7 +16,7 @@ public class CampoMinadoGUI {
                 frame.setSize(400, 400);
 
                 CampoMinado campoMinado = new CampoMinado();
-                JPanel panel = criarPainel(campoMinado);
+                JPanel panel = criarPainel(campoMinado, frame);
 
                 frame.getContentPane().add(panel);
                 frame.setVisible(true);
@@ -24,14 +24,14 @@ public class CampoMinadoGUI {
         });
     }
 
-    private static JPanel criarPainel(CampoMinado campoMinado) {
+    private static JPanel criarPainel(CampoMinado campoMinado, JFrame frame) {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(campoMinado.getLinhas(), campoMinado.getColunas()));
 
         for (int i = 0; i < campoMinado.getLinhas(); i++) {
             for (int j = 0; j < campoMinado.getColunas(); j++) {
                 JButton button = new JButton();
-                button.addActionListener(new BlocoClickListener(i, j, campoMinado, button));
+                button.addActionListener(new BlocoClickListener(i, j, campoMinado, button, frame));
                 panel.add(button);
             }
         }
@@ -44,12 +44,14 @@ class BlocoClickListener implements ActionListener {
     private final int coluna;
     private final CampoMinado campoMinado;
     private final JButton button;
+    private final JFrame frame;
 
-    public BlocoClickListener(int linha, int coluna, CampoMinado campoMinado, JButton button) {
+    public BlocoClickListener(int linha, int coluna, CampoMinado campoMinado, JButton button, JFrame frame) {
         this.linha = linha;
         this.coluna = coluna;
         this.campoMinado = campoMinado;
         this.button = button;
+        this.frame = frame;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -60,10 +62,13 @@ class BlocoClickListener implements ActionListener {
 
             if (blocoClicado.isBomba()) {
                 revelarBombas();
+                JOptionPane.showMessageDialog(frame, "Você perdeu!", "Fim de Jogo", JOptionPane.INFORMATION_MESSAGE);
+                reiniciarJogo(frame);
             } else {
                 atualizarInterface();
             }
         }
+        button.setEnabled(false);
     }
 
     private void revelarBombas() {
@@ -93,6 +98,16 @@ class BlocoClickListener implements ActionListener {
             button.setText(String.valueOf(blocoClicado.getNumero()));
         } else {
             button.setIcon(new ImageIcon("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\POO\\Bloco.png"));
+        }
+    }
+
+    private void reiniciarJogo(JFrame frame) {
+        int resposta = JOptionPane.showConfirmDialog(frame, "Deseja jogar novamente?", "Reiniciar Jogo", JOptionPane.YES_NO_OPTION);
+        if (resposta == JOptionPane.YES_OPTION) {
+            frame.dispose(); 
+            CampoMinadoGUI.main(new String[0]); 
+        } else {
+            System.exit(0); 
         }
     }
 }
