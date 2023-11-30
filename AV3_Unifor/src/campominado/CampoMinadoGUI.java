@@ -5,6 +5,13 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class CampoMinadoGUI {
 
@@ -15,13 +22,31 @@ public class CampoMinadoGUI {
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setSize(400, 400);
 
-                CampoMinado campoMinado = new CampoMinado();
+                int faseEscolhida = escolherFase();
+
+                CampoMinado campoMinado = new CampoMinado(faseEscolhida);
                 JPanel panel = criarPainel(campoMinado, frame);
 
                 frame.getContentPane().add(panel);
                 frame.setVisible(true);
             }
         });
+    }
+
+    private static int escolherFase() {
+        String[] opcoes = {"Fase 1 (Simples)", "Fase 2 (Complexa)"};
+        int escolha = JOptionPane.showOptionDialog(
+                null,
+                "Escolha a fase:",
+                "Escolha de Fase",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]
+        );
+
+        return escolha + 1;
     }
 
     private static JPanel criarPainel(CampoMinado campoMinado, JFrame frame) {
@@ -63,7 +88,7 @@ class BlocoClickListener implements ActionListener {
             if (blocoClicado.isBomba()) {
                 revelarBombas();
                 JOptionPane.showMessageDialog(frame, "Você perdeu!", "Fim de Jogo", JOptionPane.INFORMATION_MESSAGE);
-                reiniciarJogo(frame);
+                reiniciarJogo();
             } else {
                 atualizarInterface();
             }
@@ -101,13 +126,13 @@ class BlocoClickListener implements ActionListener {
         }
     }
 
-    private void reiniciarJogo(JFrame frame) {
+    private void reiniciarJogo() {
         int resposta = JOptionPane.showConfirmDialog(frame, "Deseja jogar novamente?", "Reiniciar Jogo", JOptionPane.YES_NO_OPTION);
         if (resposta == JOptionPane.YES_OPTION) {
-            frame.dispose(); 
-            CampoMinadoGUI.main(new String[0]); 
+            frame.dispose();
+            CampoMinadoGUI.main(new String[0]);
         } else {
-            System.exit(0); 
+            System.exit(0);
         }
     }
 }
@@ -119,11 +144,33 @@ class CampoMinado {
 
     private Bloco[][] tabuleiro;
 
-    public CampoMinado() {
+    public CampoMinado(int fase) {
         inicializarTabuleiro();
         distribuirBombas();
         calcularNumeros();
+        configurarFase(fase);
     }
+
+    private void configurarFase(int fase) {
+        try {
+            String fileName = "fase" + fase + ".txt";
+            Path filePath = Paths.get("src/campominado/", fileName);
+
+            List<String> lines = Files.readAllLines(filePath);
+
+            for (int i = 0; i < LINHAS; i++) {
+                String[] values = lines.get(i).split(",");
+                for (int j = 0; j < COLUNAS; j++) {
+                    tabuleiro[i][j].setBomba(Boolean.parseBoolean(values[j].trim()));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao ler o arquivo de fase:");
+            e.printStackTrace();
+        }
+    }
+
+
 
     private void inicializarTabuleiro() {
         tabuleiro = new Bloco[LINHAS][COLUNAS];
